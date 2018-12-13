@@ -6,12 +6,12 @@
  * Time: 22:13
  */
 
-namespace Fomvasss\LaravelEloquentUniqueString;
+namespace Fomvasss\LaravelEUS\Facades;
 
-use Fomvasss\LaravelMetaTags\EUSGenerator;
+use Fomvasss\LaravelEUS\EUSGenerator;
 use Illuminate\Support\Facades\Facade as LFacade;
 
-class Facade extends LFacade
+class EUS extends LFacade
 {
     public static function getFacadeAccessor()
     {

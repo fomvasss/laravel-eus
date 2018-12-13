@@ -18,19 +18,16 @@
     },
     "autoload": {
         "psr-4": {
-            "Fomvasss\\LaravelEloquentUniqueString\\": "src"
-        },
-        "files": [
-            "src/helpers.php"
-        ]
+            "Fomvasss\\LaravelEUS\\": "src"
+        }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Fomvasss\\LaravelEloquentUniqueString\\ServiceProvider"
+                "Fomvasss\\LaravelEUS\\ServiceProvider"
             ],
             "aliases": {
-                "EUS": "Fomvasss\\LaravelEloquentUniqueString\\Facade"
+                "EUS": "Fomvasss\\LaravelEUS\\Facades\\EUS"
             }
         }
     }

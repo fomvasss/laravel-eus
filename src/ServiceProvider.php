@@ -1,8 +1,8 @@
 <?php
 
-namespace Fomvasss\LaravelEloquentUniqueString;
+namespace Fomvasss\LaravelEUS;
 
-use Fomvasss\LaravelMetaTags\EUSGenerator;
+use Fomvasss\LaravelEUS\EUSGenerator;
 
 class ServiceProvider extends \Illuminate\Support\ServiceProvider
 {

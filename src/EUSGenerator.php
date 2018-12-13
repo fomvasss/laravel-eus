@@ -6,7 +6,7 @@
  * Time: 21:25
  */
 
-namespace Fomvasss\LaravelEloquentUniqueString;
+namespace Fomvasss\LaravelEUS;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,20 +14,22 @@ class EUSGenerator
 {
     const CONFIG_FILE_NAME = 'eus';
 
+    protected $app;
+    
     protected $config = [];
 
     protected $entity;
 
-    protected $rawStr;
+    protected $rawStr = '';
 
     /**
      * EUSGenerator constructor.
      *
      * @param $app
      */
-    public function __construct($app)
+    public function __construct($app = null)
     {
-        if (!$app) {
+        if (! $app) {
             $app = app();   //Fallback when $app is not given
         }
         $this->app = $app;
@@ -36,28 +38,33 @@ class EUSGenerator
     }
 
     /**
+     * Generate and save unique string value in specified field.
+     *
      * @return mixed
      * @throws \Exception
      */
-    public function save()
+    public function save(Model $entity = null, $rawStr = '')
     {
-        try {
-            $this->entity->{$this->config['field_name_for_unique_str']} = $this->generate();
-        } catch (\Exception $e) {
+        $this->entity = $entity ?: $this->entity;
+        $this->rawStr = $rawStr ?: $this->rawStr;
 
+        $str = $this->get();
+        try {
+            $this->entity->{$this->config['field_name_for_unique_str']} = $str;
+
+            return $this->entity->save();
+        } catch (\Exception $e) {
             throw $e;
         }
-
-        return $this->entity->save();
     }
 
     /**
-     * Examle use: setModel($article)->setValue('/это будет/уникальным/урлом/123')->generate();
+     * Generate unique string value.
      *
      * @return string
      * @throws \Exception
      */
-    public function generate()
+    public function get()
     {
         $nonUniqueStr = $this->makeNonUniqueStr($this->rawStr);
 
@@ -66,7 +73,7 @@ class EUSGenerator
 
     /**
      * @param string|null $rawStr
-     * @return \Fomvasss\LaravelEloquentUniqueString\EUSGenerator
+     * @return \Fomvasss\LaravelEUS\EUSGenerator
      */
     public function setRawStr(string $rawStr = null): self
     {
@@ -76,10 +83,8 @@ class EUSGenerator
     }
 
     /**
-     * Example: setEntity($article) or setEntity(new App/Models/Article())
-     *
-     * @param \Illuminate\Database\Eloquent\Model $entity
-     * @return \Fomvasss\LaravelEloquentUniqueString\EUSGenerator
+     * @param Model $entity
+     * @return EUSGenerator
      */
     public function setEntity(Model $entity): self
     {
@@ -89,19 +94,19 @@ class EUSGenerator
     }
 
     /**
-     * @param string $filedNameForUniqueStr
-     * @return string
+     * @param string $fieldNameForUniqueStr
+     * @return EUSGenerator
      */
-    public function setFiledName(string $filedNameForUniqueStr): string
+    public function setFieldName(string $fieldNameForUniqueStr): self
     {
-        $this->config['field_name_for_unique_str'] = $filedNameForUniqueStr;
+        $this->config['field_name_for_unique_str'] = $fieldNameForUniqueStr;
 
         return $this;
     }
 
     /**
      * @param string $modelPrimaryKey
-     * @return \Fomvasss\LaravelEloquentUniqueString\EUSGenerator
+     * @return \Fomvasss\LaravelEUS\EUSGenerator
      */
     public function setModelPrimaryKey(string $modelPrimaryKey): self
     {
@@ -112,7 +117,7 @@ class EUSGenerator
 
     /**
      * @param string $separator
-     * @return \Fomvasss\LaravelEloquentUniqueString\EUSGenerator
+     * @return \Fomvasss\LaravelEUS\EUSGenerator
      */
     public function setSlugSeparator(string $separator): self
     {
@@ -155,7 +160,7 @@ class EUSGenerator
      * @param string $str
      * @return string
      */
-    public function getClippedSlugWithPrefixSuffix(string $str): string
+    protected function getClippedSlugWithPrefixSuffix(string $str): string
     {
         $prefix = $this->config['prefix'];
         $suffix = $this->config['suffix'];
@@ -165,7 +170,7 @@ class EUSGenerator
             $limitWithoutPrefixSuffix = $maximumLength - ($strLen + 2);
 
             if ($limitWithoutPrefixSuffix < 1) {
-                return str_limit($prefix.' '.$suffix, $maximumLength);
+                return str_limit($prefix . ' ' . $suffix, $maximumLength);
             }
             
             return $prefix.' '.str_limit($str, $limitWithoutPrefixSuffix, '').' '.$suffix;
@@ -185,7 +190,7 @@ class EUSGenerator
         $i = 1;
         
         while ($this->isOtherRecordExists($str) || $str === '') {
-            $str = $notUniqueStr.$this->config['separator'].$i++;
+            $str = $notUniqueStr . $this->config['str_slug_separator'] . $i++;
         }
         
         return $str;
@@ -199,12 +204,15 @@ class EUSGenerator
     protected function isOtherRecordExists(string $str): bool
     {
         try {
-            $modelClass = app()->make(get_class($this->entity));
-
-            return (bool) $modelClass::withoutGlobalScopes()->where($this->config['model_primary_key'], '<>', optional($this->entity)->{$this->modelPrimaryKey})//for self entity do not check
-                ->where($this->config['field_name_for_unique_str'], $str)->first();
+            $modelClass = $this->app->make(get_class($this->entity));
+            $primaryKey = $this->config['model_primary_key'];
+            $fieldNameForUnique = $this->config['field_name_for_unique_str'];
+            
+            return (bool) $modelClass::withoutGlobalScopes()
+                ->where($primaryKey, '<>', optional($this->entity)->{$primaryKey}) // except check self entity
+                ->where($fieldNameForUnique, $str)
+                ->first();
         } catch (\Exception $e) {
-
             throw $e;
         }
     }
