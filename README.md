@@ -79,7 +79,7 @@ class ArticleController extends Controller
 }
 ```
 
-#### Other alloved methods
+### Other alloved methods
 
 Generate and get unique URL path:
 
@@ -101,4 +101,31 @@ EUS::setEntity($term)
     ->setFieldName('system_name')
     ->setSlugSeparator('_')
     ->save();
+```
+
+### Use Dependency Injection
+
+```php
+<?php
+
+namespace App\Some\Namespace;
+
+use Fomvasss\LaravelEUS\EUSGenerator;
+
+class MyClass
+{
+    public function __construct(EUSGenerator $eus)
+    {
+        $this->eus = $eus;
+    }
+    
+    public function example()
+    {
+        $article = \App\Models\Article::find(1);
+        $this->eus
+            ->setEntity($article)
+            ->setRawStr('Some string for slug')
+            ->save();
+    }
+}
 ```
