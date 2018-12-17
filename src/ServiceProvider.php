@@ -28,7 +28,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/eus.php', 'eus');
 
-        $this->app->singleton(EUSGenerator::class, function () {
+        $this->app->bind(\Fomvasss\LaravelEUS\Contracts\EUSGenerator::class, function () {
             return new EUSGenerator($this->app);
         });
     }

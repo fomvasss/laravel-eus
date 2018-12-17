@@ -100,6 +100,7 @@ EUS::setEntity($term)
     ->setRawStr($term->name)
     ->setFieldName('system_name')
     ->setSlugSeparator('_')
+    ->where(['locale', '<>', 'de'])
     ->save();
 ```
 

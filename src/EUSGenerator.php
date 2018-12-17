@@ -9,8 +9,9 @@
 namespace Fomvasss\LaravelEUS;
 
 use Illuminate\Database\Eloquent\Model;
+use Fomvasss\LaravelEUS\Contracts\EUSGenerator as EUSGeneratorContract;
 
-class EUSGenerator
+class EUSGenerator implements \Fomvasss\LaravelEUS\Contracts\EUSGenerator
 {
     const CONFIG_FILE_NAME = 'eus';
 
@@ -19,6 +20,8 @@ class EUSGenerator
     protected $config = [];
 
     protected $entity;
+
+    protected $where = [];
 
     protected $rawStr = '';
 
@@ -43,19 +46,13 @@ class EUSGenerator
      * @return mixed
      * @throws \Exception
      */
-    public function save(Model $entity = null, $rawStr = '')
+    public function save()
     {
-        $this->entity = $entity ?: $this->entity;
-        $this->rawStr = $rawStr ?: $this->rawStr;
-
         $str = $this->get();
-        try {
-            $this->entity->{$this->config['field_name_for_unique_str']} = $str;
 
-            return $this->entity->save();
-        } catch (\Exception $e) {
-            throw $e;
-        }
+        $this->entity->{$this->config['field_name_for_unique_str']} = $str;
+
+        return $this->entity->save();
     }
 
     /**
@@ -69,6 +66,17 @@ class EUSGenerator
         $nonUniqueStr = $this->makeNonUniqueStr($this->rawStr);
 
         return $this->makeUniqueStr($nonUniqueStr);
+    }
+
+    /**
+     * @param array $params
+     * @return $this
+     */
+    public function where(array $params): self
+    {
+        $this->where[] = $params;
+
+        return $this;
     }
 
     /**
@@ -128,11 +136,11 @@ class EUSGenerator
 
     /**
      * @param string $separator
-     * @return \Fomvasss\LaravelMetaTags\EUSGenerator
+     * @return EUSGenerator
      */
-    public function setSegmentsSeparator(string $separator): self
+    public function setAllowedSeparator(string $separator): self
     {
-        $this->config['str_segments_separator'] = $separator;
+        $this->config['str_allowed_separator'] = $separator;
 
         return $this;
     }
@@ -143,14 +151,14 @@ class EUSGenerator
      */
     protected function makeNonUniqueStr(string $rawStr): string
     {
-        if ($str_segments_separator = $this->config['str_segments_separator']) {
+        if ($str_allowed_separator = $this->config['str_allowed_separator']) {
             $res = array_map(function ($str) {
 
                 return str_slug($this->getClippedSlugWithPrefixSuffix($str), $this->config['str_slug_separator']);
 
-            }, explode($str_segments_separator, $rawStr));
+            }, explode($str_allowed_separator, $rawStr));
 
-            return implode($str_segments_separator, $res);
+            return implode($str_allowed_separator, $res);
         }
 
         return str_slug($this->getClippedSlugWithPrefixSuffix($rawStr), $this->config['str_slug_separator']);
@@ -203,17 +211,15 @@ class EUSGenerator
      */
     protected function isOtherRecordExists(string $str): bool
     {
-        try {
-            $modelClass = $this->app->make(get_class($this->entity));
-            $primaryKey = $this->config['model_primary_key'];
-            $fieldNameForUnique = $this->config['field_name_for_unique_str'];
-            
-            return (bool) $modelClass::withoutGlobalScopes()
-                ->where($primaryKey, '<>', optional($this->entity)->{$primaryKey}) // except check self entity
-                ->where($fieldNameForUnique, $str)
-                ->first();
-        } catch (\Exception $e) {
-            throw $e;
-        }
+        $modelClass = $this->app->make(get_class($this->entity));
+        $primaryKey = $this->config['model_primary_key'];
+        $fieldNameForUnique = $this->config['field_name_for_unique_str'];
+
+        return (bool) $modelClass::withoutGlobalScopes()
+            ->where($primaryKey, '<>', optional($this->entity)->{$primaryKey}) // except check self entity
+            ->where($fieldNameForUnique, $str)
+            ->when($this->where, function ($q) {
+                $q->where($this->where);
+            })->first();
     }
 }

@@ -16,7 +16,7 @@ return [
     
     'str_slug_separator' => '-', // example: use "_" for system name value - new_article
     
-    'str_segments_separator' => '', // example: set "/" for URL value - "github.com/fomvasss/youtube"
+    'str_allowed_separator' => '', // example: set "/" for URL value - "github.com/fomvasss/youtube"
     
     'field_name_for_unique_str' => 'slug',
 ];

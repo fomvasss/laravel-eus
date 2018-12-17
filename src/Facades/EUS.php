@@ -8,7 +8,7 @@
 
 namespace Fomvasss\LaravelEUS\Facades;
 
-use Fomvasss\LaravelEUS\EUSGenerator;
+use Fomvasss\LaravelEUS\Contracts\EUSGenerator;
 use Illuminate\Support\Facades\Facade as LFacade;
 
 class EUS extends LFacade
