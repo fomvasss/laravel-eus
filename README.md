@@ -84,23 +84,25 @@ class ArticleController extends Controller
 Generate and get unique URL path:
 
 ```php
+<?php
 $urlUniqueAlias = EUS::setEntity(new \App\Models\UrlAlias())
     ->setRawStr('path/for-your/unique-page')
     ->setFieldName('alias')
     ->setSlugSeparator('-')
-    ->setSegmentsSeparator('/')
+    ->setAllowedSeparator('/')
     ->get();
 ```
 
 Generate and save unique system name:
 
 ```php
+<?php
 $term = \App\Models\Term::find(1);
 EUS::setEntity($term)
     ->setRawStr($term->name)
     ->setFieldName('system_name')
     ->setSlugSeparator('_')
-    ->where(['locale', '<>', 'de'])
+    ->where(['locale', '=', 'de']) // additional condition for finding a unique value
     ->save();
 ```
 

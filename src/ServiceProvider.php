@@ -7,7 +7,6 @@ use Fomvasss\LaravelEUS\EUSGenerator;
 class ServiceProvider extends \Illuminate\Support\ServiceProvider
 {
     protected $defer = false;
-
     
     /**
      * Bootstrap the application services.
