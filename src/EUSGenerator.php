@@ -9,7 +9,7 @@
 namespace Fomvasss\LaravelEUS;
 
 use Illuminate\Database\Eloquent\Model;
-use Fomvasss\LaravelEUS\Contracts\EUSGenerator as EUSGeneratorContract;
+use Illuminate\Support\Str;
 
 class EUSGenerator implements \Fomvasss\LaravelEUS\Contracts\EUSGenerator
 {
@@ -154,14 +154,14 @@ class EUSGenerator implements \Fomvasss\LaravelEUS\Contracts\EUSGenerator
         if ($str_allowed_separator = $this->config['str_allowed_separator']) {
             $res = array_map(function ($str) {
 
-                return str_slug($this->getClippedSlugWithPrefixSuffix($str), $this->config['str_slug_separator']);
+                return Str::slug($this->getClippedSlugWithPrefixSuffix($str), $this->config['str_slug_separator']);
 
             }, explode($str_allowed_separator, $rawStr));
 
             return implode($str_allowed_separator, $res);
         }
 
-        return str_slug($this->getClippedSlugWithPrefixSuffix($rawStr), $this->config['str_slug_separator']);
+        return Str::slug($this->getClippedSlugWithPrefixSuffix($rawStr), $this->config['str_slug_separator']);
     }
 
     /**
@@ -178,13 +178,13 @@ class EUSGenerator implements \Fomvasss\LaravelEUS\Contracts\EUSGenerator
             $limitWithoutPrefixSuffix = $maximumLength - ($strLen + 2);
 
             if ($limitWithoutPrefixSuffix < 1) {
-                return str_limit($prefix . ' ' . $suffix, $maximumLength);
+                return Str::limit($prefix . ' ' . $suffix, $maximumLength);
             }
             
-            return $prefix.' '.str_limit($str, $limitWithoutPrefixSuffix, '').' '.$suffix;
+            return $prefix.' '.Str::limit($str, $limitWithoutPrefixSuffix, '').' '.$suffix;
         }
         
-        return str_limit($str, $maximumLength, '');
+        return Str::limit($str, $maximumLength, '');
     }
 
     /**
